@@ -22,28 +22,37 @@ event-intake/
 Python 3.10+
 pip
 
----
+### Install dependencies:
 
-```bash
-Install dependencies:
+`pip install -r requirements.txt`
 
-pip install -r requirements.txt
-▶️ Running the Service
 
-Start the development server:
+## ▶️ Running the Service
 
-uvicorn app.main:app --reload
+### Start the development server:
 
-The service will be available at:
+`uvicorn app.main:app --reload`
+
+
+### The service will be available at:
 
 API: http://127.0.0.1:8000
 Interactive Docs (Swagger UI): http://127.0.0.1:8000/docs
-📡 API Overview
-Method	Endpoint	Description
-POST	/v1/events	Submit a new event
-GET	/v1/events	Retrieve events filtered by user
-📥 Example Requests
-Create Event
+
+
+### 📡 API Overview
+
+| Method | Endpoint	| Description |
+| ----------- | ----------- | ----------- |
+| POST | /v1/events | Submit a new event |
+| GET | /v1/events | Retrieve events filtered by user |
+
+
+### 📥 Example Requests
+
+#### Create Event
+
+```bash
 curl -X POST "http://127.0.0.1:8000/v1/events" \
      -H "Content-Type: application/json" \
      -H "X-Request-Id: my-request-1" \
@@ -52,18 +61,23 @@ curl -X POST "http://127.0.0.1:8000/v1/events" \
            "user_id": "u_123",
            "metadata": { "button": "signup" }
          }'
+```
 
-Response:
-
+#### Response:
+```bash
 {
   "id": "evt_a8K2jd91",
   "accepted": true
 }
-Get Events for a User
+```
+#### Get Events for a User
+```bash
 curl "http://127.0.0.1:8000/v1/events?user_id=u_123"
+```
 
-Response:
+#### Response:
 
+```bash
 [
   {
     "id": "evt_a8K2jd91",
