@@ -83,7 +83,7 @@ Response:
 
 Run the test suite:
 
-pytest -v
+`pytest -v`
 
 All tests should pass.
 See TESTING.md for more details.
@@ -114,6 +114,7 @@ Support asynchronous processing (e.g. message queues
 Architecture details: ARCHITECTURE.md
 Testing approach: TESTING.md
 
+---
 
 ## 📌 Summary
 
