@@ -64,7 +64,7 @@ curl -X POST "http://127.0.0.1:8000/v1/events" \
 ```
 
 #### Response:
-```bash
+```json
 {
   "id": "evt_a8K2jd91",
   "accepted": true
@@ -77,7 +77,7 @@ curl "http://127.0.0.1:8000/v1/events?user_id=u_123"
 
 #### Response:
 
-```bash
+```json
 [
   {
     "id": "evt_a8K2jd91",
