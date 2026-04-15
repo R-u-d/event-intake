@@ -1,4 +1,4 @@
-📦 Project Structure
+# 📦 Project Structure
 
 ```
 event-intake/
@@ -16,11 +16,15 @@ event-intake/
 └── TESTING.md
 ```
 
-⚙️ Requirements
+---
+
+## ⚙️ Requirements
 Python 3.10+
 pip
 
-```
+---
+
+```bash
 Install dependencies:
 
 pip install -r requirements.txt
@@ -73,7 +77,9 @@ Response:
 ]
 ```
 
-🧪 Running Tests
+---
+
+## 🧪 Running Tests
 
 Run the test suite:
 
@@ -82,16 +88,18 @@ pytest -v
 All tests should pass.
 See TESTING.md for more details.
 
+---
 
-⚖️ Design Decisions & Trade-offs
+## ⚖️ Design Decisions & Trade-offs
 
 In-memory storage is used for simplicity and fast iteration
 → Not suitable for production persistence
 Request IDs enable traceability across requests and systems
 Modular structure allows easy replacement of components (e.g. database, logging)
 
+---
 
-🔮 Future Improvements
+## 🔮 Future Improvements
 
 Replace in-memory storage with a persistent database (e.g. PostgreSQL)
 Add pagination and filtering for event queries
@@ -99,13 +107,14 @@ Implement authentication and rate limiting
 Introduce structured logging and metrics (e.g. Prometheus)
 Support asynchronous processing (e.g. message queues
 
+---
 
-📚 Documentation
+## 📚 Documentation
 
 Architecture details: ARCHITECTURE.md
 Testing approach: TESTING.md
 
 
-📌 Summary
+## 📌 Summary
 
 This project demonstrates backend engineering fundamentals including API design, validation, observability, testing, and modular service architecture. It is designed to be simple, extensible, and representative of real-world event ingestion systems.
