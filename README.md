@@ -9,21 +9,21 @@ Includes request validation, in-memory storage, tracking and monitoring seams, r
 
 ## Project Structure
 
-event-intake
-├── app
+```
+event-intake/
+├── app/
 │ ├── main.py
 │ ├── store.py
 │ ├── tracking.py
 │ └── monitoring.py
-
-├── tests
+├── tests/
 │ └── test_main.py
 ├── pytest.ini
 ├── requirements.txt
 ├── README.md
 ├── ARCHITECTURE.md
 └── TESTING.md
-
+```
 
 ---
 
