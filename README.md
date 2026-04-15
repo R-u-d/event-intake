@@ -80,25 +80,32 @@ Run the test suite:
 pytest -v
 
 All tests should pass.
-
 See TESTING.md for more details.
 
+
 ⚖️ Design Decisions & Trade-offs
+
 In-memory storage is used for simplicity and fast iteration
 → Not suitable for production persistence
 Request IDs enable traceability across requests and systems
 Modular structure allows easy replacement of components (e.g. database, logging)
 
+
 🔮 Future Improvements
+
 Replace in-memory storage with a persistent database (e.g. PostgreSQL)
 Add pagination and filtering for event queries
 Implement authentication and rate limiting
 Introduce structured logging and metrics (e.g. Prometheus)
 Support asynchronous processing (e.g. message queues
 
+
 📚 Documentation
+
 Architecture details: ARCHITECTURE.md
 Testing approach: TESTING.md
 
+
 📌 Summary
+
 This project demonstrates backend engineering fundamentals including API design, validation, observability, testing, and modular service architecture. It is designed to be simple, extensible, and representative of real-world event ingestion systems.
