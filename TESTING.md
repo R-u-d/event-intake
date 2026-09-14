@@ -36,6 +36,23 @@ The in-memory store is reset between tests to ensure isolation.
    - Error captured by monitoring
    - Event not stored
 
+6. Schema validation:
+   - Event name below the 3-character minimum returns 422
+   - Missing user_id returns 422
+   - GET without user_id returns 422
+   - Nothing is persisted in any of these cases
+
+7. Query isolation:
+   - An unknown user_id returns an empty list, not a 404
+   - One user's events never appear in another user's list
+
+8. Size limit boundary:
+   - Metadata serialising to exactly 2028 characters is still accepted
+   - The rejection path is covered separately (case 2)
+
+9. Health endpoint:
+   - Returns 200 and the current number of stored events
+
 ---
 
 ## Out of Scope
@@ -53,5 +70,5 @@ The in-memory store is reset between tests to ensure isolation.
 - Replace in-memory store with database (e.g., PostgreSQL)
 - Introduce asynchronous queue for tracking
 - Add structured logging framework
-- Add CI pipeline with coverage reporting
-- Expand negative and edge-case testing
+- Add coverage reporting to the existing CI pipeline
+- Property-based tests for the metadata size boundary

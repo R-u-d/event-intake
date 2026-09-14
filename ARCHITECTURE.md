@@ -29,6 +29,13 @@ Return response:
 
 ---
 
+## GET /health
+
+Returns `{"status": "ok", "events": <count>}`. Liveness only — it does not check any
+downstream dependency, because there are none. Used by the container HEALTHCHECK.
+
+---
+
 ## Design Decisions
 
 ### 1. Request Correlation

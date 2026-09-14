@@ -39,7 +39,7 @@ async def add_request_id(request: Request, call_next):
     request.state.request_id = request_id
 
     response = await call_next(request)
-    response.headers["X-request-Id"] = request_id
+    response.headers["X-Request-Id"] = request_id
 
     return response
 
@@ -51,7 +51,7 @@ async def create_event(event_input: EventInput, request: Request):
     try:
         if event_input.event == "explode":
             raise Exception("Deliberate explosion")  # noqa: TRY002 - deliberate test hook
-        
+
         metadata = event_input.metadata or {}
 
         if len(json.dumps(metadata)) > 2028:
@@ -65,7 +65,7 @@ async def create_event(event_input: EventInput, request: Request):
                     }
                 }
             )
-        
+
         event_id = generate_event_id()
 
         event_record = {
@@ -75,7 +75,7 @@ async def create_event(event_input: EventInput, request: Request):
             "event": event_input.event,
             "user_id": event_input.user_id,
             "metadata": metadata,
-            "request_id": request_id 
+            "request_id": request_id
         }
 
         events.append(event_record)
@@ -91,7 +91,7 @@ async def create_event(event_input: EventInput, request: Request):
 
     except HTTPException:
         raise
-    
+
     except Exception as e:  # noqa: BLE001 - catch-all is the point: log then 500
         capture_exception(
             e,
@@ -122,3 +122,8 @@ async def get_events(user_id: str, limit: int = 10):
     )
 
     return user_events_sorted[:limit]
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok", "events": len(events)}

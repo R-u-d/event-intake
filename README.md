@@ -1,81 +1,82 @@
-# 📦 Project Structure
+# event-intake
 
+A small HTTP service that accepts analytics events, stores them, and hands them
+back per user. FastAPI, in-memory store, no external dependencies at runtime.
+
+## Problem
+
+An event intake endpoint has to do three things well before it does anything else:
+reject malformed input at the boundary, stay traceable when a request goes wrong,
+and never lose the correlation between what a client sent and what got logged.
+This service does those three and stops there.
+
+## Decisions
+
+**Request correlation is middleware, not endpoint code.** Every request carries an
+`X-Request-Id` — propagated if the client sent one, generated otherwise. The same id
+lands in the response header, in the stored event, and in every log line. One id ties
+a client complaint to a stack trace.
+
+**Validation is split in two.** Schema shape (`event` length, required `user_id`) is
+Pydantic's job and returns 422. Business rules (metadata under 2 KB) return 400 with a
+structured `VALIDATION_ERROR` body. Clients can tell "you sent the wrong shape" from
+"we won't take this".
+
+**Tracking and monitoring are seams, not integrations.** `track_event` and
+`capture_exception` are separate modules that print structured JSON. They are shaped
+like the vendor calls they stand in for, so swapping in a real one touches one file
+and no tests.
+
+**Storage is a module-level list.** Deliberate: zero setup, deterministic tests, and
+the seam for a real database is the only thing that matters at this size. It does not
+survive a restart and is not multi-process safe. Both are stated, neither is hidden.
+
+**Unexpected failures return 500 and store nothing.** The catch-all around the handler
+logs the exception with its request id and safe input, then returns a structured error.
+A failed request leaves no partial event behind — there is a test for that.
+
+## Status
+
+Working. 14 tests, `ruff` clean, CI runs both on every push.
+
+| Method | Endpoint      | Description                |
+| ------ | ------------- | -------------------------- |
+| POST   | `/v1/events`  | Submit an event            |
+| GET    | `/v1/events`  | List events for a user     |
+| GET    | `/health`     | Liveness and store size    |
+
+### Run it
+
+```bash
+pip install -r requirements-dev.txt
+uvicorn app.main:app --reload
 ```
-event-intake/
-├── app/
-│   ├── main.py        # API entry point
-│   ├── store.py       # In-memory storage logic
-│   ├── tracking.py    # Request tracking and correlation
-│   └── monitoring.py  # Monitoring hooks
-├── tests/
-│   └── test_main.py   # API tests
-├── pytest.ini
-├── requirements.txt
-├── README.md
-├── ARCHITECTURE.md
-└── TESTING.md
+
+Or with Docker:
+
+```bash
+docker build -t event-intake .
+docker run -p 8000:8000 event-intake
 ```
 
----
+API on `http://127.0.0.1:8000`, Swagger UI on `/docs`.
 
-## ⚙️ Requirements
-Python 3.10+
-pip
-
-### Install dependencies:
-
-`pip install -r requirements.txt`
-
-
-## ▶️ Running the Service
-
-### Start the development server:
-
-`uvicorn app.main:app --reload`
-
-
-### The service will be available at:
-
-API: http://127.0.0.1:8000
-Interactive Docs (Swagger UI): http://127.0.0.1:8000/docs
-
-
-### 📡 API Overview
-
-| Method | Endpoint	| Description |
-| ----------- | ----------- | ----------- |
-| POST | /v1/events | Submit a new event |
-| GET | /v1/events | Retrieve events filtered by user |
-
-
-### 📥 Example Requests
-
-#### Create Event
+### Try it
 
 ```bash
 curl -X POST "http://127.0.0.1:8000/v1/events" \
      -H "Content-Type: application/json" \
      -H "X-Request-Id: my-request-1" \
-     -d '{
-           "event": "button_clicked",
-           "user_id": "u_123",
-           "metadata": { "button": "signup" }
-         }'
+     -d '{"event": "button_clicked", "user_id": "u_123", "metadata": {"button": "signup"}}'
 ```
 
-#### Response:
 ```json
-{
-  "id": "evt_a8K2jd91",
-  "accepted": true
-}
+{ "id": "evt_a8K2jd91", "accepted": true }
 ```
-#### Get Events for a User
+
 ```bash
 curl "http://127.0.0.1:8000/v1/events?user_id=u_123"
 ```
-
-#### Response:
 
 ```json
 [
@@ -91,45 +92,24 @@ curl "http://127.0.0.1:8000/v1/events?user_id=u_123"
 ]
 ```
 
----
+### Test it
 
-## 🧪 Running Tests
+```bash
+pytest -q
+ruff check .
+```
 
-Run the test suite:
+## Not built
 
-`pytest -v`
+- Persistence. The store is a list; a database goes behind `app/store.py`.
+- Authentication and rate limiting. There is no trust boundary beyond schema validation.
+- Asynchronous delivery. Tracking calls run inline and only log.
 
-All tests should pass.
-See TESTING.md for more details.
+## Documentation
 
----
+Request flow and failure modes: [ARCHITECTURE.md](ARCHITECTURE.md) ·
+Test strategy and scope: [TESTING.md](TESTING.md)
 
-## ⚖️ Design Decisions & Trade-offs
+## License
 
-In-memory storage is used for simplicity and fast iteration
-→ Not suitable for production persistence
-Request IDs enable traceability across requests and systems
-Modular structure allows easy replacement of components (e.g. database, logging)
-
----
-
-## 🔮 Future Improvements
-
-Replace in-memory storage with a persistent database (e.g. PostgreSQL)
-Add pagination and filtering for event queries
-Implement authentication and rate limiting
-Introduce structured logging and metrics (e.g. Prometheus)
-Support asynchronous processing (e.g. message queues
-
----
-
-## 📚 Documentation
-
-Architecture details: ARCHITECTURE.md
-Testing approach: TESTING.md
-
----
-
-## 📌 Summary
-
-This project demonstrates backend engineering fundamentals including API design, validation, observability, testing, and modular service architecture. It is designed to be simple, extensible, and representative of real-world event ingestion systems.
+MIT — see [LICENSE](LICENSE).

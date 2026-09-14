@@ -79,7 +79,7 @@ def test_request_id_provided():
     response = client.post("/v1/events", json=payload, headers=headers)
 
     # Check response header
-    assert response.headers["X-request-Id"] == "test-123"
+    assert response.headers["X-Request-Id"] == "test-123"
 
     # Check event stored in memory has same request_id
     assert events[-1]["request_id"] == "test-123"
@@ -127,3 +127,73 @@ def test_deliberate_error_explode(monkeypatch):
     assert "Deliberate explosion" in logged["data"]
     assert "/v1/events" in logged["data"]
     assert '"event": "explode"' in logged["data"]
+
+# Test #7 — schema rejects an event name shorter than the 3-char minimum
+def test_event_name_too_short_rejected():
+    response = client.post("/v1/events", json={"event": "ab", "user_id": "u_1"})
+
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["loc"] == ["body", "event"]
+    assert events == []
+
+
+# Test #8 — schema rejects a missing required field
+def test_missing_user_id_rejected():
+    response = client.post("/v1/events", json={"event": "button_clicked"})
+
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["loc"] == ["body", "user_id"]
+    assert events == []
+
+
+# Test #9 — GET requires user_id
+def test_get_events_without_user_id_rejected():
+    assert client.get("/v1/events").status_code == 422
+
+
+# Test #10 — unknown user yields an empty list, not a 404
+def test_get_events_unknown_user_returns_empty():
+    client.post("/v1/events", json={"event": "button_clicked", "user_id": "u_a"})
+
+    response = client.get("/v1/events?user_id=u_does_not_exist")
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+# Test #11 — events of other users never leak into a user's list
+def test_get_events_isolated_per_user():
+    client.post("/v1/events", json={"event": "event_a", "user_id": "u_a"})
+    client.post("/v1/events", json={"event": "event_b", "user_id": "u_b"})
+
+    data = client.get("/v1/events?user_id=u_a").json()
+
+    assert [e["event"] for e in data] == ["event_a"]
+
+
+# Test #12 — metadata just under the size limit is still accepted
+def test_metadata_just_under_limit_accepted():
+    # {"data": "x...x"} adds 12 characters around the payload string
+    payload = {"event": "button_clicked", "user_id": "u_1", "metadata": {"data": "x" * 2016}}
+
+    response = client.post("/v1/events", json=payload)
+
+    assert response.status_code == 200
+    assert len(events) == 1
+
+
+# Test #13 — failed requests are not stored
+def test_failed_event_is_not_stored():
+    client.post("/v1/events", json={"event": "explode", "user_id": "u_err"})
+
+    assert events == []
+
+
+# Test #14 — health reports the current store size
+def test_health_reports_store_size():
+    client.post("/v1/events", json={"event": "button_clicked", "user_id": "u_1"})
+
+    response = client.get("/health")
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok", "events": 1}
