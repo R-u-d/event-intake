@@ -1,6 +1,7 @@
 import json
 import traceback
 
+
 # FANCYLOG exception-tracker
 def capture_exception(error, request_id, endpoint, safe_input):
     log = {

@@ -1,12 +1,15 @@
-import random, string, json
-from fastapi import Request, FastAPI, HTTPException
-from pydantic import BaseModel, Field
-from typing import Optional, Dict 
-from datetime import datetime, UTC
+import json
+import random
+import string
+from datetime import UTC, datetime
 from uuid import uuid4
+
+from fastapi import FastAPI, HTTPException, Request
+from pydantic import BaseModel, Field
+
+from app.monitoring import capture_exception
 from app.store import events
 from app.tracking import track_event
-from app.monitoring import capture_exception
 
 app = FastAPI()
 
@@ -16,8 +19,8 @@ app = FastAPI()
 class EventInput(BaseModel):
     event: str = Field(..., min_length=3, max_length=64)
     user_id: str = Field(..., min_length=1, max_length=64)
-    client_ts: Optional[datetime] = None
-    metadata: Optional[Dict] = None
+    client_ts: datetime | None = None
+    metadata: dict | None = None
 
 
 # random id generation (str/int combination, limited list = 8)
@@ -47,7 +50,7 @@ async def create_event(event_input: EventInput, request: Request):
 
     try:
         if event_input.event == "explode":
-            raise Exception("Deliberate explosion")
+            raise Exception("Deliberate explosion")  # noqa: TRY002 - deliberate test hook
         
         metadata = event_input.metadata or {}
 
@@ -86,10 +89,10 @@ async def create_event(event_input: EventInput, request: Request):
 
         return {"id": event_id, "accepted": True}
 
-    except HTTPException as e:
-        raise e
+    except HTTPException:
+        raise
     
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - catch-all is the point: log then 500
         capture_exception(
             e,
             request_id,

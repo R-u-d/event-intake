@@ -1,5 +1,6 @@
 import json
-from datetime import datetime, UTC
+from datetime import UTC, datetime
+
 
 # event-tracker
 def track_event(user_id, event_name, properties, request_id):

@@ -1,8 +1,8 @@
 import pytest
 from fastapi.testclient import TestClient
+
 from app.main import app
 from app.store import events
-
 
 client = TestClient(app)
 
@@ -93,7 +93,6 @@ def test_request_id_generated():
     }
 
     response = client.post("/v1/events", json=payload)
-    data = response.json()
 
     # Server should generate a non-empty request_id
     generated_id = response.headers.get("X-Request-Id")
